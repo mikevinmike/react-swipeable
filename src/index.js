@@ -7,7 +7,8 @@ const defaultProps = {
   delta: 10,
   rotationAngle: 0,
   trackMouse: false,
-  trackTouch: true
+  trackTouch: true,
+  considerCoordinatesOf: 'client'
 }
 const initialState = {
   xy: [0, 0],
@@ -24,6 +25,9 @@ const touchMove = 'touchmove'
 const touchEnd = 'touchend'
 const mouseMove = 'mousemove'
 const mouseUp = 'mouseup'
+const COORDINATES_OF_CLIENT = 'client'
+const COORDINATES_OF_PAGE = 'page'
+const COORDINATES_OF_SCREEN = 'screen'
 
 function getDirection(absX, absY, deltaX, deltaY) {
   if (absX > absY) {
@@ -35,6 +39,27 @@ function getDirection(absX, absY, deltaX, deltaY) {
     return UP
   }
   return DOWN
+}
+
+function get_coordinates_of(event, consider_coordinates_of) {
+  switch (consider_coordinates_of) {
+    case COORDINATES_OF_PAGE:
+      return {
+        rawX: event.pageX,
+        rawY: event.pageY
+      }
+    case COORDINATES_OF_SCREEN:
+      return {
+        rawX: event.screenX,
+        rawY: event.screenY
+      }
+    case COORDINATES_OF_CLIENT:
+    default:
+      return {
+        rawX: event.clientX,
+        rawY: event.clientY
+      }
+  }
 }
 
 function rotateXYByAngle(pos, angle) {
@@ -56,8 +81,9 @@ function getHandlers(set, handlerProps) {
         document.addEventListener(mouseMove, onMove)
         document.addEventListener(mouseUp, onUp)
       }
-      const { clientX, clientY } = event.touches ? event.touches[0] : event
-      const xy = rotateXYByAngle([clientX, clientY], props.rotationAngle)
+      const touchEventArgs = event.touches ? event.touches[0] : event
+      const { rawX, rawY } = get_coordinates_of(touchEventArgs, props.considerCoordinatesOf)
+      const xy = rotateXYByAngle([rawX, rawY], props.rotationAngle)
       return {
         ...state,
         ...initialState,
@@ -73,8 +99,9 @@ function getHandlers(set, handlerProps) {
       if (!state.xy[0] || !state.xy[1] || (event.touches && event.touches.length > 1)) {
         return state
       }
-      const { clientX, clientY } = event.touches ? event.touches[0] : event
-      const [x, y] = rotateXYByAngle([clientX, clientY], props.rotationAngle)
+      const touchEventArgs = event.touches ? event.touches[0] : event
+      const { rawX, rawY } = get_coordinates_of(touchEventArgs, props.considerCoordinatesOf)
+      const [x, y] = rotateXYByAngle([rawX, rawY], props.rotationAngle)
       const deltaX = state.xy[0] - x
       const deltaY = state.xy[1] - y
       const absX = Math.abs(deltaX)

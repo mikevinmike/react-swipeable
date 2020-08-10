@@ -32,6 +32,7 @@ export interface SwipeableOptions {
   trackTouch?: boolean
   trackMouse?: boolean
   rotationAngle?: number
+  considerCoordinatesOf?: 'client' | 'page' | 'screen'
 }
 
 // Component Specific Props
